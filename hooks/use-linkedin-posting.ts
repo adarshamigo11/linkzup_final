@@ -88,7 +88,7 @@ export function useLinkedInPosting() {
 
     setIsScheduling(true)
     try {
-      const response = await fetch("/api/linkedin/schedule-post", {
+      const response = await fetch("/api/linkedin/schedule", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

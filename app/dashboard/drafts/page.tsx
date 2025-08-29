@@ -46,9 +46,11 @@ import { format } from "date-fns"
 import { toast } from "@/hooks/use-toast"
 import { getDraftsFromDB, saveDraftToDB, updateDraftInDB, deleteDraftFromDB, type Draft } from "@/lib/drafts-api"
 import { useRouter } from "next/navigation"
+import { useLinkedInPosting } from "@/hooks/use-linkedin-posting"
 
 export default function DraftsPage() {
   const router = useRouter()
+  const { postToLinkedIn, isPosting, isLinkedInConnected } = useLinkedInPosting()
   const [drafts, setDrafts] = useState<Draft[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
@@ -185,6 +187,38 @@ export default function DraftsPage() {
       toast({
         title: "Error",
         description: "Failed to update draft",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handlePostDraft = async (draft: Draft) => {
+    if (!isLinkedInConnected) {
+      toast({
+        title: "LinkedIn Not Connected",
+        description: "Please connect your LinkedIn account first to post content",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      const result = await postToLinkedIn({
+        content: draft.content,
+        images: [],
+      })
+
+      if (result.success) {
+        toast({
+          title: "Posted Successfully!",
+          description: "Your draft has been posted to LinkedIn",
+        })
+      }
+    } catch (error) {
+      console.error("Error posting draft:", error)
+      toast({
+        title: "Posting Failed",
+        description: "Failed to post draft to LinkedIn. Please try again.",
         variant: "destructive",
       })
     }
@@ -381,9 +415,14 @@ export default function DraftsPage() {
                   <Calendar className="h-4 w-4" />
                   Schedule
                 </Button>
-                <Button size="sm" className="flex-1 gap-2">
+                <Button 
+                  size="sm" 
+                  className="flex-1 gap-2"
+                  onClick={() => handlePostDraft(draft)}
+                  disabled={isPosting || !isLinkedInConnected}
+                >
                   <Send className="h-4 w-4" />
-                  Post Now
+                  {isPosting ? "Posting..." : "Post Now"}
                 </Button>
                 <Button 
                   size="sm" 

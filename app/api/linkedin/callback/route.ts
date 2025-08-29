@@ -41,7 +41,10 @@ export async function GET(request: NextRequest) {
       console.log("Fixed NEXTAUTH_URL from https to http:", baseUrl)
     }
     
-    const redirectUri = baseUrl + '/api/linkedin/callback'
+    // Ensure no double slashes
+    const redirectUri = baseUrl?.endsWith('/') 
+      ? baseUrl + 'api/linkedin/callback'
+      : baseUrl + '/api/linkedin/callback'
     console.log("Using redirect URI for token exchange:", redirectUri)
     
     const tokenResponse = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {

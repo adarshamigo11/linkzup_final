@@ -44,6 +44,7 @@ import {
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { toast } from "@/hooks/use-toast"
+import { useLinkedInPosting } from "@/hooks/use-linkedin-posting"
 import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 
@@ -106,6 +107,7 @@ const templates = [
 
 export default function AICarouselPage() {
   const { data: session } = useSession()
+  const { postToLinkedIn, isPosting, isLinkedInConnected } = useLinkedInPosting()
   const [currentProject, setCurrentProject] = useState<CarouselProject | null>(null)
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0)
   const [showPreviewModal, setShowPreviewModal] = useState(false)
@@ -666,8 +668,17 @@ export default function AICarouselPage() {
     }
   }
 
-  const postToLinkedIn = async () => {
+  const handlePostToLinkedIn = async () => {
     if (!currentProject) return
+
+    if (!isLinkedInConnected) {
+      toast({
+        title: "LinkedIn Not Connected",
+        description: "Please connect your LinkedIn account first to post content",
+        variant: "destructive",
+      })
+      return
+    }
 
     try {
       // First, export slides as images
@@ -711,14 +722,19 @@ export default function AICarouselPage() {
         slideImages.push(canvas.toDataURL("image/png"))
       }
 
-      // TODO: Implement actual LinkedIn API integration
-      // For now, we'll simulate the posting process
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      toast({
-        title: "Posted to LinkedIn!",
-        description: "Your carousel has been published successfully.",
+      // Post to LinkedIn with the generated images
+      const result = await postToLinkedIn({
+        content: `🎨 ${currentProject.title}\n\n${currentProject.slides.map((slide, index) => `${index + 1}. ${slide.text}`).join('\n')}`,
+        images: slideImages,
       })
+
+      if (result.success) {
+        toast({
+          title: "Posted to LinkedIn!",
+          description: "Your carousel has been published successfully.",
+        })
+        setShowPreviewModal(false)
+      }
     } catch (error) {
       console.error("LinkedIn posting error:", error)
       toast({
@@ -1082,7 +1098,7 @@ export default function AICarouselPage() {
                           <Download className="w-4 h-4 mr-2" />
                           Export PDF
                         </Button>
-                        <Button onClick={postToLinkedIn} size="sm">
+                        <Button onClick={handlePostToLinkedIn} size="sm">
                           <Send className="w-4 h-4 mr-2" />
                           Post
                         </Button>
@@ -1546,9 +1562,13 @@ export default function AICarouselPage() {
                   <Download className="w-4 h-4 mr-2" />
                   Export PDF
                 </Button>
-                <Button onClick={postToLinkedIn} className="flex-1">
+                <Button 
+                  onClick={handlePostToLinkedIn} 
+                  className="flex-1"
+                  disabled={isPosting || !isLinkedInConnected}
+                >
                   <Send className="w-4 h-4 mr-2" />
-                  Post to LinkedIn
+                  {isPosting ? "Posting..." : "Post to LinkedIn"}
                 </Button>
               </div>
             </div>

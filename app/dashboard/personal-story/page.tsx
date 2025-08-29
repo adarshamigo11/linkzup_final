@@ -21,6 +21,7 @@ import { User, BookOpen, Lightbulb, Target, Calendar, Send, Eye, CheckCircle, Sp
 import { useSession } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
 import { PersonalStoryCustomizationPanel, type PersonalStoryCustomization } from "@/components/personal-story-customization"
+import { useLinkedInPosting } from "@/hooks/use-linkedin-posting"
 
 interface PersonalStoryForm {
   challenge: string
@@ -85,6 +86,7 @@ const storyQuestions = [
 export default function PersonalStoryPage() {
   const { data: session } = useSession()
   const { toast } = useToast()
+  const { postToLinkedIn, isPosting, isLinkedInConnected } = useLinkedInPosting()
   const [currentStep, setCurrentStep] = useState(0)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedStories, setGeneratedStories] = useState<GeneratedStory[]>([])
@@ -463,6 +465,41 @@ export default function PersonalStoryPage() {
     }
   }
 
+  const handlePostStory = async () => {
+    if (!selectedStory) return
+
+    if (!isLinkedInConnected) {
+      toast({
+        title: "LinkedIn Not Connected",
+        description: "Please connect your LinkedIn account first to post content",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      const result = await postToLinkedIn({
+        content: selectedStory.content,
+        images: [],
+      })
+
+      if (result.success) {
+        toast({
+          title: "Posted Successfully!",
+          description: "Your personal story has been posted to LinkedIn",
+        })
+        setShowPreviewModal(false)
+      }
+    } catch (error) {
+      console.error("Error posting story:", error)
+      toast({
+        title: "Posting Failed",
+        description: "Failed to post story to LinkedIn. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
   const currentQuestion = storyQuestions[currentStep]
 
   return (
@@ -708,9 +745,12 @@ export default function PersonalStoryPage() {
               </div>
               
               <div className="flex gap-2">
-                <Button>
+                <Button 
+                  onClick={handlePostStory}
+                  disabled={isPosting || !isLinkedInConnected}
+                >
                   <Send className="w-4 h-4 mr-2" />
-                  Post to LinkedIn
+                  {isPosting ? "Posting..." : "Post to LinkedIn"}
                 </Button>
                 <Button variant="outline" onClick={handleSaveDraft}>
                   <Calendar className="w-4 h-4 mr-2" />

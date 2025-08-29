@@ -19,6 +19,7 @@ import {
   Loader2
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useLinkedInPosting } from "@/hooks/use-linkedin-posting"
 
 interface LinkedInPreviewProps {
   content: string
@@ -28,6 +29,7 @@ interface LinkedInPreviewProps {
 
 export function LinkedInPreview({ content, onSaveToDraft, onClose }: LinkedInPreviewProps) {
   const { toast } = useToast()
+  const { postToLinkedIn, isPosting, isLinkedInConnected } = useLinkedInPosting()
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [imageSource, setImageSource] = useState<"ai-carousel" | "search" | "ai-generate" | "upload" | null>(null)
   
@@ -177,6 +179,40 @@ export function LinkedInPreview({ content, onSaveToDraft, onClose }: LinkedInPre
       title: "Image selected",
       description: "Image has been selected for your content",
     })
+  }
+
+  const handlePostToLinkedIn = async () => {
+    if (!isLinkedInConnected) {
+      toast({
+        title: "LinkedIn Not Connected",
+        description: "Please connect your LinkedIn account first to post content",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      const images = selectedImage ? [selectedImage] : []
+      const result = await postToLinkedIn({
+        content,
+        images,
+      })
+
+      if (result.success) {
+        toast({
+          title: "Posted Successfully!",
+          description: "Your content has been posted to LinkedIn",
+        })
+        onClose()
+      }
+    } catch (error) {
+      console.error("Error posting to LinkedIn:", error)
+      toast({
+        title: "Posting Failed",
+        description: "Failed to post to LinkedIn. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -449,9 +485,17 @@ export function LinkedInPreview({ content, onSaveToDraft, onClose }: LinkedInPre
             </Button>
             <Button 
               onClick={() => onSaveToDraft(content, "LinkedIn Post", "linkedin-post")}
+              variant="outline"
             >
               <Save className="w-4 h-4 mr-2" />
               Save to Draft
+            </Button>
+            <Button 
+              onClick={handlePostToLinkedIn}
+              disabled={isPosting || !isLinkedInConnected}
+            >
+              <Send className="w-4 h-4 mr-2" />
+              {isPosting ? "Posting..." : "Post to LinkedIn"}
             </Button>
           </div>
         </CardContent>
