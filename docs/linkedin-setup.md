@@ -24,10 +24,10 @@ http://localhost:3000/api/linkedin/callback
 
 **For Production:**
 \`\`\`
-https://yourdomain.com/api/linkedin/callback
+https://linkzup-advanced-version.vercel.app/api/linkedin/callback
 \`\`\`
 
-**Important:** Replace `yourdomain.com` with your actual domain name.
+**Important:** This is the specific callback URL for your Vercel deployment.
 
 ### OAuth 2.0 Scopes
 Make sure your app has the following scopes enabled:
@@ -127,7 +127,7 @@ When deploying to production:
 
 ### Example Production .env
 \`\`\`env
-NEXTAUTH_URL=https://yourdomain.com
+NEXTAUTH_URL=https://linkzup-advanced-version.vercel.app
 LINKEDIN_CLIENT_ID=your_production_client_id
 LINKEDIN_CLIENT_SECRET=your_production_client_secret
 NEXTAUTH_SECRET=your_secure_secret_here
