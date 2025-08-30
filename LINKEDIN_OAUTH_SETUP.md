@@ -3,8 +3,8 @@
 ## Current Configuration Status ✅
 
 Your LinkedIn OAuth configuration needs to be updated for the production deployment at:
-- ✅ Production URL: `https://linkzup-advanced-version.vercel.app`
-- ✅ LinkedIn Callback URL: `https://linkzup-advanced-version.vercel.app/api/auth/callback/linkedin`
+- ✅ Production URL: `https://linkzup-final.vercel.app`
+- ✅ LinkedIn Callback URL: `https://linkzup-final.vercel.app/api/auth/linkedin/callback`
 
 ## Required LinkedIn App Configuration
 
@@ -13,12 +13,12 @@ Add these URLs to your LinkedIn app:
 
 **For Development:**
 ```
-http://localhost:3000/api/auth/callback/linkedin
+http://localhost:3000/api/auth/linkedin/callback
 ```
 
 **For Production (Vercel):**
 ```
-https://linkzup-advanced-version.vercel.app/api/auth/callback/linkedin
+https://linkzup-final.vercel.app/api/auth/linkedin/callback
 ```
 
 ### 2. OAuth 2.0 Scopes
@@ -36,7 +36,7 @@ Make sure your LinkedIn app has these scopes enabled:
 3. Go to "Auth" tab
 4. In "OAuth 2.0 settings", add the redirect URL:
    ```
-   https://linkzup-advanced-version.vercel.app/api/auth/callback/linkedin
+   https://linkzup-final.vercel.app/api/auth/linkedin/callback
    ```
 5. Click "Update" to save changes
 
@@ -45,12 +45,12 @@ Make sure these are set in your Vercel environment variables:
 ```
 LINKEDIN_CLIENT_ID=your-linkedin-client-id
 LINKEDIN_CLIENT_SECRET=your-linkedin-client-secret
-NEXTAUTH_URL=https://linkzup-advanced-version.vercel.app
+NEXTAUTH_URL=https://linkzup-final.vercel.app
 NEXTAUTH_SECRET=your-nextauth-secret
 ```
 
 ### Step 3: Test the Configuration
-1. Visit: `https://linkzup-advanced-version.vercel.app/api/test-linkedin`
+1. Visit: `https://linkzup-final.vercel.app/api/test-linkedin`
 2. Check the configuration status
 3. Try connecting with LinkedIn
 4. Check for any error messages
@@ -60,7 +60,7 @@ NEXTAUTH_SECRET=your-nextauth-secret
 ### Issue: "redirect_uri does not match the registered value"
 **Solution**: Add the exact redirect URI to LinkedIn app:
 ```
-https://linkzup-advanced-version.vercel.app/api/auth/callback/linkedin
+https://linkzup-final.vercel.app/api/auth/linkedin/callback
 ```
 
 ### Issue: "Invalid client_id"
@@ -89,14 +89,14 @@ The LinkedIn sign-in is implemented using:
 
 ## Quick Fix for Current Issue
 
-The error you're seeing is because the redirect URI `https://linkzup-advanced-version.vercel.app/api/auth/callback/linkedin` is not configured in your LinkedIn app. To fix this:
+The error you're seeing is because the redirect URI `https://linkzup-final.vercel.app/api/auth/linkedin/callback` is not configured in your LinkedIn app. To fix this:
 
 1. Go to [LinkedIn Developers](https://www.linkedin.com/developers/)
 2. Find your app and click on it
 3. Go to "Auth" tab
 4. In "OAuth 2.0 settings", add this redirect URL:
    ```
-   https://linkzup-advanced-version.vercel.app/api/auth/callback/linkedin
+   https://linkzup-final.vercel.app/api/auth/linkedin/callback
    ```
 5. Click "Update"
 6. Wait a few minutes for the changes to propagate

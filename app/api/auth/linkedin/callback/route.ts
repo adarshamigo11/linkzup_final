@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
         code: code,
         client_id: process.env.LINKEDIN_CLIENT_ID!,
         client_secret: process.env.LINKEDIN_CLIENT_SECRET!,
-        redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/linkedin`,
+        redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/linkedin/callback`,
       }),
     })
 

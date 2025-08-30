@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     
     // Generate LinkedIn OAuth URL directly
     const baseUrl = process.env.NEXTAUTH_URL
-    const redirectUri = `${baseUrl}/api/auth/callback/linkedin`
+    const redirectUri = `${baseUrl}/api/auth/linkedin/callback`
     
     // Prepare state data
     const stateData = isSignIn 
