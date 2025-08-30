@@ -1,6 +1,5 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
-import { deductCredits } from "@/lib/credit-utils"
 
 export interface LinkedInPostData {
   content: string
@@ -20,19 +19,10 @@ export interface PostResult {
 /**
  * Unified function to handle direct LinkedIn posting
  * Used by all "Post" buttons throughout the application
+ * Note: Credit deduction should be handled by the calling API route
  */
 export async function postToLinkedIn(postData: LinkedInPostData): Promise<PostResult> {
   try {
-    // Check and deduct credits
-    const creditResult = await deductCredits("text_with_post", "LinkedIn post")
-    if (!creditResult) {
-      return {
-        success: false,
-        message: "Insufficient credits",
-        error: "INSUFFICIENT_CREDITS"
-      }
-    }
-
     // Get user session to access LinkedIn credentials
     const session = await getServerSession(authOptions) as any
     if (!session?.user?.id) {
@@ -224,6 +214,7 @@ export async function postToLinkedIn(postData: LinkedInPostData): Promise<PostRe
 /**
  * Unified function to handle scheduled LinkedIn posting
  * Used by all scheduling buttons and cron job
+ * Note: Credit deduction should be handled by the calling API route
  */
 export async function scheduleLinkedInPost(postData: LinkedInPostData): Promise<PostResult> {
   try {
@@ -232,16 +223,6 @@ export async function scheduleLinkedInPost(postData: LinkedInPostData): Promise<
         success: false,
         message: "Scheduled date is required",
         error: "MISSING_SCHEDULE_DATE"
-      }
-    }
-
-    // Check and deduct credits
-    const creditResult = await deductCredits("auto_post", "Scheduled LinkedIn post")
-    if (!creditResult) {
-      return {
-        success: false,
-        message: "Insufficient credits",
-        error: "INSUFFICIENT_CREDITS"
       }
     }
 

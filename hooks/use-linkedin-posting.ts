@@ -15,12 +15,25 @@ export function useLinkedInPosting() {
   const [isPosting, setIsPosting] = useState(false)
   const [isScheduling, setIsScheduling] = useState(false)
 
+  // Type assertion to ensure session has the extended user properties
+  const typedSession = session as any
+
   const postToLinkedIn = async (postData: PostData) => {
     // Check LinkedIn connection status using the status hook
     if (!isLinkedInConnected) {
       toast({
         title: "LinkedIn Not Connected",
         description: "Please connect your LinkedIn account first. Click on 'LinkedIn Not Connected' in the header to connect.",
+        variant: "destructive",
+      })
+      return { success: false }
+    }
+
+    // Check if session exists
+    if (!typedSession?.user?.id || !typedSession?.user?.email) {
+      toast({
+        title: "Session Error",
+        description: "Please sign in again to continue.",
         variant: "destructive",
       })
       return { success: false }
@@ -34,8 +47,8 @@ export function useLinkedInPosting() {
         body: JSON.stringify({
           content: postData.content,
           images: postData.images || [],
-          userId: session.user.id,
-          userEmail: session.user.email,
+          userId: typedSession.user.id,
+          userEmail: typedSession.user.email,
         }),
       })
 
@@ -48,6 +61,10 @@ export function useLinkedInPosting() {
         })
         // Force session update to refresh LinkedIn connection status
         await update()
+        // Refresh credits display
+        if (typeof window !== 'undefined' && (window as any).refreshCredits) {
+          (window as any).refreshCredits()
+        }
         return { success: true }
       } else {
         toast({
@@ -99,8 +116,8 @@ export function useLinkedInPosting() {
           content: postData.content,
           images: postData.images,
           scheduledFor: postData.scheduledFor.toISOString(),
-          userId: session.user.id,
-          userEmail: session.user.email,
+          userId: typedSession.user.id,
+          userEmail: typedSession.user.email,
         }),
       })
 
@@ -113,6 +130,10 @@ export function useLinkedInPosting() {
         })
         // Force session update to refresh LinkedIn connection status
         await update()
+        // Refresh credits display
+        if (typeof window !== 'undefined' && (window as any).refreshCredits) {
+          (window as any).refreshCredits()
+        }
         return { success: true }
       } else {
         toast({
