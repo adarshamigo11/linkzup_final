@@ -35,12 +35,42 @@ export async function postToLinkedIn(postData: LinkedInPostData): Promise<PostRe
 
     // Get user session to access LinkedIn credentials
     const session = await getServerSession(authOptions) as any
-    if (!session?.user?.linkedinId || !session?.user?.accessToken) {
+    if (!session?.user?.id) {
       return {
         success: false,
-        message: "LinkedIn account not connected. Please connect your LinkedIn account first.",
-        error: "LINKEDIN_NOT_CONNECTED"
+        message: "User session not found. Please sign in again.",
+        error: "NO_SESSION"
       }
+    }
+
+    // Fetch user data directly from database to get latest LinkedIn credentials
+    const { MongoClient, ObjectId } = await import("mongodb")
+    const client = new MongoClient(process.env.MONGODB_URI || "mongodb://localhost:27017/Linkzup-Advanced")
+    
+    let userData
+    try {
+      await client.connect()
+      const db = client.db("Linkzup-Advanced")
+      const users = db.collection("users")
+      
+      userData = await users.findOne({ _id: new ObjectId(session.user.id) })
+      
+      if (!userData?.linkedinId || !userData?.linkedinAccessToken) {
+        return {
+          success: false,
+          message: "LinkedIn account not connected. Please connect your LinkedIn account first.",
+          error: "LINKEDIN_NOT_CONNECTED"
+        }
+      }
+    } catch (error) {
+      console.error("Database error fetching user data:", error)
+      return {
+        success: false,
+        message: "Failed to fetch user data. Please try again.",
+        error: "DATABASE_ERROR"
+      }
+    } finally {
+      await client.close()
     }
 
     // Handle images if provided
@@ -62,14 +92,14 @@ export async function postToLinkedIn(postData: LinkedInPostData): Promise<PostRe
           const assetResponse = await fetch("https://api.linkedin.com/v2/assets?action=registerUpload", {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${session.user.accessToken}`,
+              Authorization: `Bearer ${userData.linkedinAccessToken}`,
               "Content-Type": "application/json",
               "X-Restli-Protocol-Version": "2.0.0",
             },
             body: JSON.stringify({
               registerUploadRequest: {
                 recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
-                owner: `urn:li:person:${session.user.linkedinId}`,
+                owner: `urn:li:person:${userData.linkedinId}`,
                 serviceRelationships: [
                   {
                     relationshipType: "OWNER",
@@ -93,7 +123,7 @@ export async function postToLinkedIn(postData: LinkedInPostData): Promise<PostRe
           const uploadResponse = await fetch(uploadUrl, {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${session.user.accessToken}`,
+              Authorization: `Bearer ${userData.linkedinAccessToken}`,
               "Content-Type": "application/octet-stream",
             },
             body: imageBuffer,
@@ -119,7 +149,7 @@ export async function postToLinkedIn(postData: LinkedInPostData): Promise<PostRe
 
     // Prepare LinkedIn API request
     const linkedinRequestBody = {
-      author: `urn:li:person:${session.user.linkedinId}`,
+      author: `urn:li:person:${userData.linkedinId}`,
       lifecycleState: "PUBLISHED",
       specificContent: {
         "com.linkedin.ugc.ShareContent": {
@@ -141,7 +171,7 @@ export async function postToLinkedIn(postData: LinkedInPostData): Promise<PostRe
     const linkedinResponse = await fetch("https://api.linkedin.com/v2/ugcPosts", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${session.user.accessToken}`,
+        Authorization: `Bearer ${userData.linkedinAccessToken}`,
         "Content-Type": "application/json",
         "X-Restli-Protocol-Version": "2.0.0",
       },
@@ -154,15 +184,23 @@ export async function postToLinkedIn(postData: LinkedInPostData): Promise<PostRe
       
       const errorText = await linkedinResponse.text()
       console.error("LinkedIn API error:", linkedinResponse.status, errorText)
+      console.error("Request body:", JSON.stringify(linkedinRequestBody, null, 2))
       
       return {
         success: false,
-        message: `Failed to post to LinkedIn: ${linkedinResponse.statusText}`,
+        message: `Failed to post to LinkedIn: ${linkedinResponse.statusText}. Please check your LinkedIn connection and try again.`,
         error: "LINKEDIN_API_ERROR"
       }
     }
 
     const result = await linkedinResponse.json()
+    
+    console.log("LinkedIn post successful:", {
+      postId: result.id,
+      userId: postData.userId,
+      contentLength: postData.content.length,
+      hasImages: postData.images && postData.images.length > 0
+    })
 
     return {
       success: true,
