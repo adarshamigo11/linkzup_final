@@ -18,7 +18,9 @@ export function DashboardClientWrapper({ children }: DashboardClientWrapperProps
 
   useEffect(() => {
     if (status === "loading") return // Still loading
-    if (!session) redirect("/auth/signin")
+    if (!session && status === "unauthenticated") {
+      redirect("/auth/signin")
+    }
   }, [session, status])
 
   // Prevent hydration mismatch by not rendering until mounted

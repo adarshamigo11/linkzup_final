@@ -66,16 +66,43 @@ export default function DashboardPage() {
     const error = searchParams.get('error')
     
     if (success === 'linkedin_connected') {
-      // Refresh session to get updated LinkedIn connection status
-      updateSession()
+      // Clear the URL parameters first to prevent infinite loop
+      const url = new URL(window.location.href)
+      url.searchParams.delete('success')
+      url.searchParams.delete('error')
+      window.history.replaceState({}, '', url.toString())
+      
+      // Show success message
       toast({
         title: "LinkedIn Connected!",
         description: "Your LinkedIn account has been successfully connected. You can now post content directly to LinkedIn.",
       })
+      
+      // Refresh session after a short delay to ensure the database update is complete
+      setTimeout(() => {
+        updateSession()
+      }, 1000)
     } else if (error) {
+      // Clear the URL parameters first to prevent infinite loop
+      const url = new URL(window.location.href)
+      url.searchParams.delete('success')
+      url.searchParams.delete('error')
+      window.history.replaceState({}, '', url.toString())
+      
+      const errorMessages: Record<string, string> = {
+        linkedin_oauth_failed: "LinkedIn connection failed. Please try again.",
+        missing_params: "Missing required parameters for LinkedIn connection.",
+        invalid_state: "Invalid state parameter. Please try again.",
+        token_exchange_failed: "Failed to exchange authorization code. Please try again.",
+        profile_fetch_failed: "Failed to fetch LinkedIn profile. Please try again.",
+        callback_failed: "LinkedIn connection callback failed. Please try again.",
+        update_failed: "Failed to update user profile. Please try again.",
+        database_error: "Database error occurred. Please try again.",
+      }
+      
       toast({
         title: "LinkedIn Connection Failed",
-        description: `Failed to connect LinkedIn: ${error}`,
+        description: errorMessages[error] || `Failed to connect LinkedIn: ${error}`,
         variant: "destructive",
       })
     }
@@ -124,33 +151,7 @@ export default function DashboardPage() {
     { value: "serp", label: "Google Images" },
   ]
 
-  // Handle LinkedIn connection feedback
-  useEffect(() => {
-    const success = searchParams.get('success')
-    const error = searchParams.get('error')
 
-    if (success === 'linkedin_connected') {
-      toast({
-        title: "Success",
-        description: "LinkedIn account connected successfully!",
-      })
-    } else if (error) {
-      const errorMessages: Record<string, string> = {
-        linkedin_oauth_failed: "LinkedIn connection failed. Please try again.",
-        missing_params: "Missing required parameters for LinkedIn connection.",
-        invalid_state: "Invalid state parameter. Please try again.",
-        token_exchange_failed: "Failed to exchange authorization code. Please try again.",
-        profile_fetch_failed: "Failed to fetch LinkedIn profile. Please try again.",
-        callback_failed: "LinkedIn connection callback failed. Please try again.",
-      }
-      
-      toast({
-        title: "Error",
-        description: errorMessages[error] || "LinkedIn connection failed. Please try again.",
-        variant: "destructive",
-      })
-    }
-  }, [searchParams])
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
