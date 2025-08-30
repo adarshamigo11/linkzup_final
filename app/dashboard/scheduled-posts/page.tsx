@@ -33,6 +33,7 @@ import {
   Search,
 } from "lucide-react"
 import { format } from "date-fns"
+import { LinkedInPostButton } from "@/components/linkedin-post-button"
 
 interface ScheduledPost {
   id: string
@@ -301,6 +302,15 @@ export default function ScheduledPostsPage() {
                     <span>{post.engagement.likes} likes</span>
                     <span>{post.engagement.comments} comments</span>
                     <span>{post.engagement.shares} shares</span>
+                  </div>
+                )}
+                
+                {post.status === "pending" && (
+                  <div className="flex gap-2 pt-3 border-t">
+                    <LinkedInPostButton 
+                      content={post.content}
+                      className="flex-1 text-xs h-8"
+                    />
                   </div>
                 )}
               </CardContent>

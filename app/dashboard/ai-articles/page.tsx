@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Loader2, Sparkles, X, RefreshCw, Calendar, Save, Eye, Settings } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { LinkedInPreview } from "@/components/linkedin-preview"
+import { LinkedInPostButton } from "@/components/linkedin-post-button"
 import { AICustomizationPanel, type CustomizationOptions } from "@/components/ai-customization-panel"
 
 
@@ -534,6 +535,10 @@ export default function AIArticlesPage() {
                                             Preview
                                           </Button>
                                         </div>
+                                        <LinkedInPostButton 
+                                          content={content}
+                                          className="w-full text-xs h-8"
+                                        />
                                       </div>
                                     </div>
                                   ))}
@@ -577,6 +582,10 @@ export default function AIArticlesPage() {
                                           Preview
                                         </Button>
                                       </div>
+                                      <LinkedInPostButton 
+                                        content={getTopicContent(topic)}
+                                        className="w-full text-xs h-8"
+                                      />
                                     </div>
                                   </div>
                                 </div>

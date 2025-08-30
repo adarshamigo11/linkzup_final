@@ -22,6 +22,7 @@ import { useSession } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
 import { PersonalStoryCustomizationPanel, type PersonalStoryCustomization } from "@/components/personal-story-customization"
 import { useLinkedInPosting } from "@/hooks/use-linkedin-posting"
+import { LinkedInPostButton } from "@/components/linkedin-post-button"
 
 interface PersonalStoryForm {
   challenge: string
@@ -701,6 +702,14 @@ export default function PersonalStoryPage() {
                           ? story.content 
                           : "Story content is being generated..."}
                       </p>
+                      {story.content && story.content.length > 0 && (
+                        <div className="mt-3 pt-2 border-t border-muted/30">
+                          <LinkedInPostButton 
+                            content={story.content}
+                            className="w-full text-xs h-8"
+                          />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

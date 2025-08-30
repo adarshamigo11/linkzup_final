@@ -21,6 +21,7 @@ import {
   Filter,
   RefreshCw,
 } from "lucide-react"
+import { LinkedInPostButton } from "@/components/linkedin-post-button"
 
 interface ViralPost {
   id: string
@@ -312,10 +313,16 @@ export default function ViralPostsPage() {
                         <span>{post.engagement.views.toLocaleString()}</span>
                       </div>
                     </div>
-                    <Button size="sm" className="gap-2">
-                      <Sparkles className="h-4 w-4" />
-                      Create Similar
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button size="sm" className="gap-2">
+                        <Sparkles className="h-4 w-4" />
+                        Create Similar
+                      </Button>
+                      <LinkedInPostButton 
+                        content={post.content}
+                        className="text-xs h-8"
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
