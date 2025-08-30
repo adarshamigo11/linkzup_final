@@ -70,12 +70,22 @@ class AIService {
   private isProcessing = false
   private maxConcurrentRequests = 3
   private activeRequests = 0
-  private openai: OpenAI
+  private openai: OpenAI | null = null
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    })
+    // Lazy initialization to avoid build-time errors
+  }
+
+  private getOpenAI(): OpenAI {
+    if (!this.openai) {
+      if (!process.env.OPENAI_API_KEY) {
+        throw new Error("OPENAI_API_KEY environment variable is required")
+      }
+      this.openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      })
+    }
+    return this.openai
   }
 
   // Generate unique request ID
@@ -186,7 +196,7 @@ class AIService {
     const { temperature = 0.7, maxTokens = 2000 } = request.customization
 
     // Always use OpenAI with fixed settings for consistency
-    const completion = await this.openai.chat.completions.create({
+    const completion = await this.getOpenAI().chat.completions.create({
       model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7, // Fixed temperature for consistent quality

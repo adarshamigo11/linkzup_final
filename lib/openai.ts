@@ -1,8 +1,19 @@
 import OpenAI from "openai"
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Lazy initialization to avoid build-time errors
+let openai: OpenAI | null = null
+
+function getOpenAI() {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY environment variable is required")
+    }
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
+  }
+  return openai
+}
 
 interface LinkedInPostParams {
   prompt: string
@@ -48,7 +59,7 @@ Requirements:
 
 Format the response as 6 distinct posts, each separated by "---POST_SEPARATOR---". Each post should be complete and ready to publish.`
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: "gpt-4",
       messages: [{ role: "user", content: dynamicPrompt }],
       temperature: 0.8,
@@ -92,7 +103,7 @@ export async function generateTopics(niche: string, count = 5) {
     Return ONLY a JSON array of strings containing the topic titles.
     Example format: ["Title 1", "Title 2", "Title 3"]`
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.8,
@@ -226,7 +237,7 @@ export async function generateContent(topic: string, format: string, niche: stri
         - Format for LinkedIn with proper line breaks and emojis`
     }
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,

@@ -39,8 +39,8 @@ export async function GET(request: NextRequest) {
     
     // Ensure no double slashes
     const redirectUri = baseUrl?.endsWith('/') 
-      ? baseUrl + 'api/linkedin/callback'
-      : baseUrl + '/api/linkedin/callback'
+      ? baseUrl + 'api/auth/callback/linkedin'
+      : baseUrl + '/api/auth/callback/linkedin'
     console.log("Redirect URI being used:", redirectUri)
     console.log("LinkedIn Client ID value:", process.env.LINKEDIN_CLIENT_ID)
 
