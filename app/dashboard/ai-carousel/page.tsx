@@ -671,15 +671,6 @@ export default function AICarouselPage() {
   const handlePostToLinkedIn = async () => {
     if (!currentProject) return
 
-    if (!isLinkedInConnected) {
-      toast({
-        title: "LinkedIn Not Connected",
-        description: "Please connect your LinkedIn account first to post content",
-        variant: "destructive",
-      })
-      return
-    }
-
     try {
       // First, export slides as images
       const slideImages = []
@@ -1565,7 +1556,7 @@ export default function AICarouselPage() {
                 <Button 
                   onClick={handlePostToLinkedIn} 
                   className="flex-1"
-                  disabled={isPosting || !isLinkedInConnected}
+                  disabled={isPosting}
                 >
                   <Send className="w-4 h-4 mr-2" />
                   {isPosting ? "Posting..." : "Post to LinkedIn"}

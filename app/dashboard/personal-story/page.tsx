@@ -469,15 +469,6 @@ export default function PersonalStoryPage() {
   const handlePostStory = async () => {
     if (!selectedStory) return
 
-    if (!isLinkedInConnected) {
-      toast({
-        title: "LinkedIn Not Connected",
-        description: "Please connect your LinkedIn account first to post content",
-        variant: "destructive",
-      })
-      return
-    }
-
     try {
       const result = await postToLinkedIn({
         content: selectedStory.content,
@@ -756,7 +747,7 @@ export default function PersonalStoryPage() {
               <div className="flex gap-2">
                 <Button 
                   onClick={handlePostStory}
-                  disabled={isPosting || !isLinkedInConnected}
+                  disabled={isPosting}
                 >
                   <Send className="w-4 h-4 mr-2" />
                   {isPosting ? "Posting..." : "Post to LinkedIn"}

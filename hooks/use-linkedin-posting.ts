@@ -19,16 +19,6 @@ export function useLinkedInPosting() {
   const typedSession = session as any
 
   const postToLinkedIn = async (postData: PostData) => {
-    // Check LinkedIn connection status using the status hook
-    if (!isLinkedInConnected) {
-      toast({
-        title: "LinkedIn Not Connected",
-        description: "Please connect your LinkedIn account first. Click on 'LinkedIn Not Connected' in the header to connect.",
-        variant: "destructive",
-      })
-      return { success: false }
-    }
-
     // Check if session exists
     if (!typedSession?.user?.id || !typedSession?.user?.email) {
       toast({
@@ -67,11 +57,26 @@ export function useLinkedInPosting() {
         }
         return { success: true }
       } else {
-        toast({
-          title: "Error",
-          description: result.message || "Failed to post to LinkedIn",
-          variant: "destructive",
-        })
+        // Handle specific error cases
+        if (result.errorCode === "INSUFFICIENT_CREDITS") {
+          toast({
+            title: "Insufficient Credits",
+            description: "You need 1 credit to post to LinkedIn. Please purchase more credits or upgrade your plan.",
+            variant: "destructive",
+          })
+        } else if (result.errorCode === "LINKEDIN_NOT_CONNECTED") {
+          toast({
+            title: "LinkedIn Not Connected",
+            description: "Please connect your LinkedIn account first to post content.",
+            variant: "destructive",
+          })
+        } else {
+          toast({
+            title: "Error",
+            description: result.message || "Failed to post to LinkedIn",
+            variant: "destructive",
+          })
+        }
         return { success: false, error: result.message }
       }
     } catch (error) {
@@ -88,20 +93,20 @@ export function useLinkedInPosting() {
   }
 
   const scheduleLinkedInPost = async (postData: PostData) => {
-    // Check LinkedIn connection status using the status hook
-    if (!isLinkedInConnected) {
+    if (!postData.scheduledFor) {
       toast({
-        title: "LinkedIn Not Connected",
-        description: "Please connect your LinkedIn account first. Click on 'LinkedIn Not Connected' in the header to connect.",
+        title: "Schedule Date Required",
+        description: "Please select a date and time to schedule your post",
         variant: "destructive",
       })
       return { success: false }
     }
 
-    if (!postData.scheduledFor) {
+    // Check if session exists
+    if (!typedSession?.user?.id || !typedSession?.user?.email) {
       toast({
-        title: "Schedule Date Required",
-        description: "Please select a date and time to schedule your post",
+        title: "Session Error",
+        description: "Please sign in again to continue.",
         variant: "destructive",
       })
       return { success: false }
@@ -136,11 +141,26 @@ export function useLinkedInPosting() {
         }
         return { success: true }
       } else {
-        toast({
-          title: "Error",
-          description: result.message || "Failed to schedule post",
-          variant: "destructive",
-        })
+        // Handle specific error cases
+        if (result.errorCode === "INSUFFICIENT_CREDITS") {
+          toast({
+            title: "Insufficient Credits",
+            description: "You need 0.5 credits to schedule a LinkedIn post. Please purchase more credits or upgrade your plan.",
+            variant: "destructive",
+          })
+        } else if (result.errorCode === "LINKEDIN_NOT_CONNECTED") {
+          toast({
+            title: "LinkedIn Not Connected",
+            description: "Please connect your LinkedIn account first to schedule posts.",
+            variant: "destructive",
+          })
+        } else {
+          toast({
+            title: "Error",
+            description: result.message || "Failed to schedule post",
+            variant: "destructive",
+          })
+        }
         return { success: false, error: result.message }
       }
     } catch (error) {

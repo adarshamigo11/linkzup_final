@@ -50,7 +50,7 @@ export function LinkedInPostButton({
     }
   }
 
-  const isDisabled = disabled || !isLinkedInConnected || isPosting || isScheduling
+  const isDisabled = disabled || isPosting || isScheduling
   const isLoading = isPosting || isScheduling
 
   if (variant === "post") {
@@ -76,9 +76,7 @@ export function LinkedInPostButton({
             ? "Posted Successfully!" 
             : postStatus === "error" 
               ? "Post Failed" 
-              : isLinkedInConnected 
-                ? "Post to LinkedIn" 
-                : "Connect LinkedIn First"
+              : "Post to LinkedIn"
         }
       </Button>
     )
@@ -106,9 +104,7 @@ export function LinkedInPostButton({
           ? "Scheduled Successfully!" 
           : postStatus === "error" 
             ? "Schedule Failed" 
-            : isLinkedInConnected 
-              ? "Schedule for LinkedIn" 
-              : "Connect LinkedIn First"
+            : "Schedule for LinkedIn"
       }
     </Button>
   )

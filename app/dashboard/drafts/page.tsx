@@ -192,33 +192,26 @@ export default function DraftsPage() {
     }
   }
 
-  const handlePostDraft = async (draft: Draft) => {
-    if (!isLinkedInConnected) {
-      toast({
-        title: "LinkedIn Not Connected",
-        description: "Please connect your LinkedIn account first to post content",
-        variant: "destructive",
-      })
-      return
-    }
-
+  const handlePostToLinkedIn = async (draft: Draft) => {
     try {
       const result = await postToLinkedIn({
         content: draft.content,
-        images: [],
+        images: draft.images || [],
       })
 
       if (result.success) {
         toast({
-          title: "Posted Successfully!",
-          description: "Your draft has been posted to LinkedIn",
+          title: "Posted to LinkedIn!",
+          description: "Your draft has been published successfully.",
         })
+        // Optionally remove the draft after successful posting
+        // await deleteDraft(draft.id)
       }
     } catch (error) {
-      console.error("Error posting draft:", error)
+      console.error("LinkedIn posting error:", error)
       toast({
         title: "Posting Failed",
-        description: "Failed to post draft to LinkedIn. Please try again.",
+        description: "There was an error posting to LinkedIn. Please try again.",
         variant: "destructive",
       })
     }
@@ -418,8 +411,8 @@ export default function DraftsPage() {
                 <Button 
                   size="sm" 
                   className="flex-1 gap-2"
-                  onClick={() => handlePostDraft(draft)}
-                  disabled={isPosting || !isLinkedInConnected}
+                  onClick={() => handlePostToLinkedIn(draft)}
+                  disabled={isPosting}
                 >
                   <Send className="h-4 w-4" />
                   {isPosting ? "Posting..." : "Post Now"}
