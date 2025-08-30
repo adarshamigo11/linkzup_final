@@ -54,9 +54,30 @@ interface GeneratedPost {
 }
 
 export default function DashboardPage() {
-  const { data: session } = useSession()
+  const { data: session, update: updateSession } = useSession()
   const searchParams = useSearchParams()
   const { toast } = useToast()
+
+  // Check for LinkedIn connection success/error messages and refresh session
+  useEffect(() => {
+    const success = searchParams.get('success')
+    const error = searchParams.get('error')
+    
+    if (success === 'linkedin_connected') {
+      // Refresh session to get updated LinkedIn connection status
+      updateSession()
+      toast({
+        title: "LinkedIn Connected!",
+        description: "Your LinkedIn account has been successfully connected. You can now post content directly to LinkedIn.",
+      })
+    } else if (error) {
+      toast({
+        title: "LinkedIn Connection Failed",
+        description: `Failed to connect LinkedIn: ${error}`,
+        variant: "destructive",
+      })
+    }
+  }, [searchParams, updateSession, toast])
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedPosts, setGeneratedPosts] = useState<GeneratedPost[]>([])
   const [selectedPost, setSelectedPost] = useState<GeneratedPost | null>(null)
@@ -858,16 +879,16 @@ export default function DashboardPage() {
                 </Tabs>
               </div>
               
-                             <div className="flex gap-2">
-                 <LinkedInPostButton 
-                   content={selectedPost.content} 
-                   images={selectedImage ? [selectedImage] : undefined}
-                 />
-                 <Button variant="outline" onClick={handleSaveDraft}>
-                   <Save className="w-4 h-4 mr-2" />
-                   Save to Drafts
-                 </Button>
-               </div>
+                                           <div className="flex gap-2">
+                <LinkedInPostButton 
+                  content={isEditing ? editableContent : selectedPost.content} 
+                  images={selectedImage ? [selectedImage] : undefined}
+                />
+                <Button variant="outline" onClick={handleSaveDraft}>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save to Drafts
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>

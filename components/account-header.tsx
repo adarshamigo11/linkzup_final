@@ -6,14 +6,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { CreditDisplay } from "@/components/credit-display"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { User, Settings, LogOut, ChevronDown, Zap, Linkedin, Unlink } from "lucide-react"
+import { User, Settings, LogOut, ChevronDown, Zap, Linkedin, Unlink, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function AccountHeader() {
-  const { data: session } = useSession()
-  const { isConnected: isLinkedInConnected, isLoading: isLinkedInLoading } = useLinkedInStatus()
+  const { data: session, update: updateSession } = useSession()
+  const { isConnected: isLinkedInConnected, isLoading: isLinkedInLoading, refreshStatus } = useLinkedInStatus()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [isClient, setIsClient] = useState(false)
@@ -118,6 +118,29 @@ export function AccountHeader() {
                     ? "Your LinkedIn account is connected" 
                     : "Click to connect your LinkedIn account"
                 }
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Refresh LinkedIn Status Button */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={async () => {
+                    await updateSession()
+                    refreshStatus()
+                  }}
+                  disabled={isLinkedInLoading}
+                  className="h-8 w-8 p-0"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLinkedInLoading ? 'animate-spin' : ''}`} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                Refresh LinkedIn connection status
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
