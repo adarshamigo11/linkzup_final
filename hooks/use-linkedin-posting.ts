@@ -16,10 +16,11 @@ export function useLinkedInPosting() {
   const [isScheduling, setIsScheduling] = useState(false)
 
   const postToLinkedIn = async (postData: PostData) => {
-    if (!session?.user?.linkedinConnected) {
+    // Check LinkedIn connection status using the status hook
+    if (!isLinkedInConnected) {
       toast({
         title: "LinkedIn Not Connected",
-        description: "Please connect your LinkedIn account first",
+        description: "Please connect your LinkedIn account first. Click on 'LinkedIn Not Connected' in the header to connect.",
         variant: "destructive",
       })
       return { success: false }
@@ -70,10 +71,11 @@ export function useLinkedInPosting() {
   }
 
   const scheduleLinkedInPost = async (postData: PostData) => {
-    if (!session?.user?.linkedinConnected) {
+    // Check LinkedIn connection status using the status hook
+    if (!isLinkedInConnected) {
       toast({
         title: "LinkedIn Not Connected",
-        description: "Please connect your LinkedIn account first",
+        description: "Please connect your LinkedIn account first. Click on 'LinkedIn Not Connected' in the header to connect.",
         variant: "destructive",
       })
       return { success: false }

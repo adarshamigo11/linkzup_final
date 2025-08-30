@@ -1,8 +1,9 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Send, Calendar, Loader2 } from "lucide-react"
+import { Send, Calendar, Loader2, CheckCircle, XCircle } from "lucide-react"
 import { useLinkedInPosting } from "@/hooks/use-linkedin-posting"
+import { useState } from "react"
 
 interface LinkedInPostButtonProps {
   content: string
@@ -24,8 +25,10 @@ export function LinkedInPostButton({
   onSuccess,
 }: LinkedInPostButtonProps) {
   const { postToLinkedIn, scheduleLinkedInPost, isPosting, isScheduling, isLinkedInConnected } = useLinkedInPosting()
+  const [postStatus, setPostStatus] = useState<"idle" | "success" | "error">("idle")
 
   const handleClick = async () => {
+    setPostStatus("idle")
     let result
     if (variant === "post") {
       result = await postToLinkedIn({ content, images })
@@ -33,8 +36,17 @@ export function LinkedInPostButton({
       result = await scheduleLinkedInPost({ content, images, scheduledFor })
     }
     
-    if (result.success && onSuccess) {
-      onSuccess()
+    if (result.success) {
+      setPostStatus("success")
+      if (onSuccess) {
+        onSuccess()
+      }
+      // Reset status after 3 seconds
+      setTimeout(() => setPostStatus("idle"), 3000)
+    } else {
+      setPostStatus("error")
+      // Reset status after 3 seconds
+      setTimeout(() => setPostStatus("idle"), 3000)
     }
   }
 
@@ -47,13 +59,27 @@ export function LinkedInPostButton({
         onClick={handleClick}
         disabled={isDisabled}
         className={className}
+        variant={postStatus === "success" ? "default" : postStatus === "error" ? "destructive" : "default"}
       >
         {isLoading ? (
           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+        ) : postStatus === "success" ? (
+          <CheckCircle className="w-4 h-4 mr-2" />
+        ) : postStatus === "error" ? (
+          <XCircle className="w-4 h-4 mr-2" />
         ) : (
           <Send className="w-4 h-4 mr-2" />
         )}
-        {isLinkedInConnected ? "Post to LinkedIn" : "Connect LinkedIn First"}
+        {isLoading 
+          ? "Posting..." 
+          : postStatus === "success" 
+            ? "Posted Successfully!" 
+            : postStatus === "error" 
+              ? "Post Failed" 
+              : isLinkedInConnected 
+                ? "Post to LinkedIn" 
+                : "Connect LinkedIn First"
+        }
       </Button>
     )
   }
@@ -62,15 +88,28 @@ export function LinkedInPostButton({
     <Button
       onClick={handleClick}
       disabled={isDisabled}
-      variant="outline"
+      variant={postStatus === "success" ? "default" : postStatus === "error" ? "destructive" : "outline"}
       className={className}
     >
       {isLoading ? (
         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+      ) : postStatus === "success" ? (
+        <CheckCircle className="w-4 h-4 mr-2" />
+      ) : postStatus === "error" ? (
+        <XCircle className="w-4 h-4 mr-2" />
       ) : (
         <Calendar className="w-4 h-4 mr-2" />
       )}
-      {isLinkedInConnected ? "Schedule for LinkedIn" : "Connect LinkedIn First"}
+      {isLoading 
+        ? "Scheduling..." 
+        : postStatus === "success" 
+          ? "Scheduled Successfully!" 
+          : postStatus === "error" 
+            ? "Schedule Failed" 
+            : isLinkedInConnected 
+              ? "Schedule for LinkedIn" 
+              : "Connect LinkedIn First"
+      }
     </Button>
   )
 }

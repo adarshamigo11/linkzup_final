@@ -37,12 +37,14 @@ import {
   Settings,
   Loader2,
   X,
+  Bug,
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
 import { CreditDisplay } from "@/components/credit-display"
 import { LinkedInPostButton } from "@/components/linkedin-post-button"
 import { AICustomizationPanel, type CustomizationOptions } from "@/components/ai-customization-panel"
+import { LinkedInDebug } from "@/components/linkedin-debug"
 
 
 interface GeneratedPost {
@@ -615,6 +617,22 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* LinkedIn Debug Component - Temporary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bug className="w-5 h-5 text-primary" />
+                LinkedIn Connection Debug
+              </CardTitle>
+              <CardDescription>
+                Use this to troubleshoot LinkedIn connection issues
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <LinkedInDebug />
+            </CardContent>
+          </Card>
         </div>
 
 
