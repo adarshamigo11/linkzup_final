@@ -30,12 +30,31 @@ export async function GET(request: NextRequest) {
     console.log("LinkedIn Client ID:", process.env.LINKEDIN_CLIENT_ID ? "exists" : "missing")
     console.log("NEXTAUTH_URL:", process.env.NEXTAUTH_URL)
     
-    // Redirect to NextAuth sign-in page with LinkedIn provider
-    // This will automatically use the correct redirect URI configured in NextAuth
-    const signInUrl = `${process.env.NEXTAUTH_URL}/api/auth/signin/linkedin?callbackUrl=${encodeURIComponent(`${process.env.NEXTAUTH_URL}/dashboard?success=linkedin_connected`)}`
+    // Generate LinkedIn OAuth URL directly
+    const baseUrl = process.env.NEXTAUTH_URL
+    const redirectUri = `${baseUrl}/api/auth/callback/linkedin`
     
-    console.log("Redirecting to LinkedIn OAuth:", signInUrl)
-    return NextResponse.redirect(signInUrl)
+    // Prepare state data
+    const stateData = isSignIn 
+      ? { action: 'signin' }
+      : { 
+          action: 'connect', 
+          userId: (session as any)?.user?.id,
+          email: (session as any)?.user?.email 
+        }
+
+    // Generate LinkedIn OAuth URL
+    const linkedinAuthUrl = `https://www.linkedin.com/oauth/v2/authorization?` +
+      `response_type=code&` +
+      `client_id=${process.env.LINKEDIN_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `scope=${encodeURIComponent('openid profile email w_member_social r_events')}&` +
+      `state=${encodeURIComponent(JSON.stringify(stateData))}`
+
+    console.log("Generated LinkedIn auth URL:", linkedinAuthUrl)
+    console.log("Redirect URI being used:", redirectUri)
+
+    return NextResponse.redirect(linkedinAuthUrl)
   } catch (error) {
     console.error("LinkedIn connect error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

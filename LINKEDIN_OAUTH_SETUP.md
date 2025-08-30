@@ -82,7 +82,7 @@ https://linkzup-advanced-version.vercel.app/api/auth/callback/linkedin
 ## Current Implementation
 
 The LinkedIn sign-in is implemented using:
-- NextAuth.js with LinkedIn Provider
+- Custom OAuth flow with direct LinkedIn API integration
 - Custom profile mapping for LinkedIn users
 - Proper JWT and session callbacks
 - Error handling and debugging
