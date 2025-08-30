@@ -53,19 +53,14 @@ export async function GET(request: NextRequest) {
           email: session?.user?.email 
         }
 
-    // Generate LinkedIn OAuth URL
-    const linkedinAuthUrl = `https://www.linkedin.com/oauth/v2/authorization?` +
-      `response_type=code&` +
-      `client_id=${process.env.LINKEDIN_CLIENT_ID}&` +
-      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-      `scope=${encodeURIComponent('openid profile email w_member_social r_events')}&` +
-      `state=${encodeURIComponent(JSON.stringify(stateData))}`
-
-    console.log("Generated LinkedIn auth URL:", linkedinAuthUrl)
+    // Use NextAuth's built-in LinkedIn provider
+    const signInUrl = `${baseUrl}/api/auth/signin/linkedin?callbackUrl=${encodeURIComponent(`${baseUrl}/dashboard`)}`
+    
+    console.log("Generated NextAuth LinkedIn sign-in URL:", signInUrl)
 
     return NextResponse.json({
       success: true,
-      authUrl: linkedinAuthUrl,
+      authUrl: signInUrl,
     })
   } catch (error) {
     console.error("Error generating LinkedIn auth URL:", error)
