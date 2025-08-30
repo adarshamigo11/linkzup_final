@@ -4,7 +4,7 @@
 
 Your LinkedIn OAuth configuration needs to be updated for the production deployment at:
 - ✅ Production URL: `https://linkzup-advanced-version.vercel.app`
-- ✅ LinkedIn Callback URL: `https://linkzup-advanced-version.vercel.app/api/linkedin/callback`
+- ✅ LinkedIn Callback URL: `https://linkzup-advanced-version.vercel.app/api/auth/callback/linkedin`
 
 ## Required LinkedIn App Configuration
 
@@ -13,12 +13,12 @@ Add these URLs to your LinkedIn app:
 
 **For Development:**
 ```
-http://localhost:3000/api/linkedin/callback
+http://localhost:3000/api/auth/callback/linkedin
 ```
 
 **For Production (Vercel):**
 ```
-https://linkzup-advanced-version.vercel.app/api/linkedin/callback
+https://linkzup-advanced-version.vercel.app/api/auth/callback/linkedin
 ```
 
 ### 2. OAuth 2.0 Scopes
@@ -36,7 +36,7 @@ Make sure your LinkedIn app has these scopes enabled:
 3. Go to "Auth" tab
 4. In "OAuth 2.0 settings", add the redirect URL:
    ```
-   https://linkzup-advanced-version.vercel.app/api/linkedin/callback
+   https://linkzup-advanced-version.vercel.app/api/auth/callback/linkedin
    ```
 5. Click "Update" to save changes
 
@@ -60,7 +60,7 @@ NEXTAUTH_SECRET=your-nextauth-secret
 ### Issue: "redirect_uri does not match the registered value"
 **Solution**: Add the exact redirect URI to LinkedIn app:
 ```
-https://linkzup-advanced-version.vercel.app/api/linkedin/callback
+https://linkzup-advanced-version.vercel.app/api/auth/callback/linkedin
 ```
 
 ### Issue: "Invalid client_id"
@@ -89,14 +89,14 @@ The LinkedIn sign-in is implemented using:
 
 ## Quick Fix for Current Issue
 
-The error you're seeing is because the redirect URI `https://linkzup-advanced-version.vercel.app/api/linkedin/callback` is not configured in your LinkedIn app. To fix this:
+The error you're seeing is because the redirect URI `https://linkzup-advanced-version.vercel.app/api/auth/callback/linkedin` is not configured in your LinkedIn app. To fix this:
 
 1. Go to [LinkedIn Developers](https://www.linkedin.com/developers/)
 2. Find your app and click on it
 3. Go to "Auth" tab
 4. In "OAuth 2.0 settings", add this redirect URL:
    ```
-   https://linkzup-advanced-version.vercel.app/api/linkedin/callback
+   https://linkzup-advanced-version.vercel.app/api/auth/callback/linkedin
    ```
 5. Click "Update"
 6. Wait a few minutes for the changes to propagate
