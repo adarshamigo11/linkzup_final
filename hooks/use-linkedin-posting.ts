@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useSession } from "next-auth/react"
 import { toast } from "@/hooks/use-toast"
+import { useLinkedInStatus } from "./use-linkedin-status"
 
 interface PostData {
   content: string
@@ -10,6 +11,7 @@ interface PostData {
 
 export function useLinkedInPosting() {
   const { data: session, update } = useSession()
+  const { isConnected: isLinkedInConnected } = useLinkedInStatus()
   const [isPosting, setIsPosting] = useState(false)
   const [isScheduling, setIsScheduling] = useState(false)
 
@@ -30,7 +32,7 @@ export function useLinkedInPosting() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           content: postData.content,
-          images: postData.images,
+          images: postData.images || [],
           userId: session.user.id,
           userEmail: session.user.email,
         }),
@@ -136,6 +138,6 @@ export function useLinkedInPosting() {
     scheduleLinkedInPost,
     isPosting,
     isScheduling,
-    isLinkedInConnected: !!session?.user?.linkedinConnected,
+    isLinkedInConnected,
   }
 }

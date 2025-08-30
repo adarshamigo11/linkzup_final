@@ -76,6 +76,11 @@ export default function DashboardPage() {
   const [aiResults, setAiResults] = useState<any[]>([])
   const [uploadedImages, setUploadedImages] = useState<string[]>([])
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  
+  // Edit functionality state
+  const [isEditing, setIsEditing] = useState(false)
+  const [editableContent, setEditableContent] = useState("")
+  
   const [customization, setCustomization] = useState<CustomizationOptions>({
     tone: "professional",
     language: "english",
@@ -213,6 +218,8 @@ export default function DashboardPage() {
 
   const handleSelectPost = (post: GeneratedPost) => {
     setSelectedPost(post)
+    setEditableContent(post.content)
+    setIsEditing(false)
     setShowPreviewModal(true)
   }
 
@@ -386,6 +393,43 @@ export default function DashboardPage() {
     })
   }
 
+  // Edit functions
+  const handleEdit = () => {
+    if (selectedPost) {
+      setIsEditing(true)
+      setEditableContent(selectedPost.content)
+    }
+  }
+
+  const handleSaveEdit = () => {
+    if (selectedPost) {
+      setIsEditing(false)
+      setSelectedPost({
+        ...selectedPost,
+        content: editableContent
+      })
+      toast({
+        title: "Content updated",
+        description: "Your post content has been updated successfully.",
+      })
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    if (selectedPost) {
+      setEditableContent(selectedPost.content)
+    }
+  }
+
+  const handleClosePreview = (open: boolean) => {
+    if (!open) {
+      setIsEditing(false)
+      setSelectedImage(null)
+    }
+    setShowPreviewModal(open)
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {/* Header */}
@@ -518,27 +562,35 @@ export default function DashboardPage() {
                 </CardTitle>
                 <CardDescription>Select content to preview and customize before publishing to LinkedIn.</CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="grid gap-4">
-                  {generatedPosts.map((post, index) => (
-                    <div
-                      key={post.id}
-                      className="p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                      onClick={() => handleSelectPost(post)}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary">{post.tone}</Badge>
-                          <Badge variant="outline">{post.wordCount} words</Badge>
-                        </div>
-                        <Eye className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                      <p className="text-sm text-muted-foreground line-clamp-3">
-                        {post.content}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+                             <CardContent>
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                   {generatedPosts.map((post, index) => (
+                     <div
+                       key={post.id}
+                       className="aspect-square p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors flex flex-col"
+                       onClick={() => handleSelectPost(post)}
+                     >
+                       <div className="flex items-start justify-between mb-3">
+                         <div className="flex flex-wrap gap-1">
+                           <Badge variant="secondary" className="text-xs">{post.tone}</Badge>
+                           <Badge variant="outline" className="text-xs">{post.wordCount} words</Badge>
+                         </div>
+                         <Eye className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                       </div>
+                       <div className="flex-1 overflow-hidden">
+                         <p className="text-sm text-muted-foreground line-clamp-6 leading-relaxed">
+                           {post.content}
+                         </p>
+                       </div>
+                       <div className="mt-3 pt-2 border-t border-muted/30">
+                         <div className="flex items-center justify-between text-xs text-muted-foreground">
+                           <span>Click to preview</span>
+                           <span>#{index + 1}</span>
+                         </div>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
               </CardContent>
             </Card>
           )}
@@ -548,7 +600,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Preview Modal */}
-      <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
+      <Dialog open={showPreviewModal} onOpenChange={handleClosePreview}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Preview Content</DialogTitle>
@@ -565,9 +617,39 @@ export default function DashboardPage() {
                   <Badge variant="secondary">{selectedPost.tone}</Badge>
                   <Badge variant="outline">{selectedPost.wordCount} words</Badge>
                 </div>
-                <div className="whitespace-pre-wrap text-sm">
-                  {selectedPost.content}
-                </div>
+                {isEditing ? (
+                  <div className="space-y-2">
+                    <Textarea
+                      value={editableContent}
+                      onChange={(e) => setEditableContent(e.target.value)}
+                      className="min-h-[120px] resize-none"
+                      placeholder="Edit your post content..."
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={handleSaveEdit}>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save Changes
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+                        <X className="w-4 h-4 mr-2" />
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="whitespace-pre-wrap text-sm">{selectedPost.content}</div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={handleEdit}
+                      className="mt-2"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Edit Post
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Image Management Section */}
@@ -706,12 +788,12 @@ export default function DashboardPage() {
                             <div className="grid grid-cols-3 gap-2 max-h-64 overflow-y-auto">
                               {searchResults.map((result) => (
                                 <div key={result.id} className="relative group">
-                                  <img
-                                    src={result.thumbnail}
-                                    alt={result.title || 'Search result'}
-                                    className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                                    onClick={() => handleImageSelect(result.url, result)}
-                                  />
+                                                                     <img
+                                     src={result.thumbnail}
+                                     alt={result.title || 'Search result'}
+                                     className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                                     onClick={() => handleImageSelect(result.url)}
+                                   />
                                   <Badge className="absolute top-1 left-1 text-xs">
                                     {result.source}
                                   </Badge>
@@ -756,12 +838,12 @@ export default function DashboardPage() {
                             <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
                               {aiResults.map((result) => (
                                 <div key={result.id} className="relative group">
-                                  <img
-                                    src={result.url}
-                                    alt={result.prompt}
-                                    className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                                    onClick={() => handleImageSelect(result.url, result)}
-                                  />
+                                                                     <img
+                                     src={result.url}
+                                     alt={result.prompt}
+                                     className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                                     onClick={() => handleImageSelect(result.url)}
+                                   />
                                   <div className="absolute bottom-1 left-1 right-1 bg-black/50 text-white text-xs p-1 rounded">
                                     {result.prompt.substring(0, 50)}...
                                   </div>
@@ -776,13 +858,16 @@ export default function DashboardPage() {
                 </Tabs>
               </div>
               
-              <div className="flex gap-2">
-                <LinkedInPostButton content={selectedPost.content} />
-                <Button variant="outline" onClick={handleSaveDraft}>
-                  <Save className="w-4 h-4 mr-2" />
-                  Save to Drafts
-                </Button>
-              </div>
+                             <div className="flex gap-2">
+                 <LinkedInPostButton 
+                   content={selectedPost.content} 
+                   images={selectedImage ? [selectedImage] : undefined}
+                 />
+                 <Button variant="outline" onClick={handleSaveDraft}>
+                   <Save className="w-4 h-4 mr-2" />
+                   Save to Drafts
+                 </Button>
+               </div>
             </div>
           )}
         </DialogContent>

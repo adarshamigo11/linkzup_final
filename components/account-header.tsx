@@ -1,6 +1,7 @@
 "use client"
 import { useSession, signOut } from "next-auth/react"
 import { useState, useRef, useEffect } from "react"
+import { useLinkedInStatus } from "@/hooks/use-linkedin-status"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { CreditDisplay } from "@/components/credit-display"
@@ -12,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 export function AccountHeader() {
   const { data: session } = useSession()
+  const { isConnected: isLinkedInConnected, isLoading: isLinkedInLoading } = useLinkedInStatus()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const [isClient, setIsClient] = useState(false)
@@ -38,8 +40,6 @@ export function AccountHeader() {
 
   // Don't render anything until client-side hydration is complete
   if (!isClient || !session?.user) return null
-
-  const isLinkedInConnected = !!(session.user as any).linkedinConnected
 
   const handleLinkedInConnection = async () => {
     if (!isLinkedInConnected) {
@@ -87,18 +87,36 @@ export function AccountHeader() {
               <TooltipTrigger asChild>
                 <div 
                   className={`flex items-center gap-2 ${!isLinkedInConnected ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
-                  onClick={handleLinkedInConnection}
+                  onClick={!isLinkedInConnected ? handleLinkedInConnection : undefined}
                 >
-                  <Linkedin className={`h-4 w-4 ${isLinkedInConnected ? 'text-green-600' : 'text-red-600'}`} />
-                  <Badge variant={isLinkedInConnected ? "default" : "destructive"} className="text-xs">
-                    {isLinkedInConnected ? "LinkedIn Connected" : "LinkedIn Not Connected"}
+                  <Linkedin className={`h-4 w-4 transition-colors duration-300 ${
+                    isLinkedInLoading 
+                      ? 'text-yellow-500 animate-pulse' 
+                      : isLinkedInConnected 
+                        ? 'text-green-600' 
+                        : 'text-red-600'
+                  }`} />
+                  <Badge 
+                    variant={isLinkedInConnected ? "default" : "destructive"} 
+                    className={`text-xs transition-all duration-300 ${
+                      isLinkedInLoading ? 'animate-pulse' : ''
+                    }`}
+                  >
+                    {isLinkedInLoading 
+                      ? "Checking..." 
+                      : isLinkedInConnected 
+                        ? "LinkedIn Connected" 
+                        : "LinkedIn Not Connected"
+                    }
                   </Badge>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                {isLinkedInConnected 
-                  ? "Your LinkedIn account is connected" 
-                  : "Click to connect your LinkedIn account"
+                {isLinkedInLoading 
+                  ? "Checking LinkedIn connection status..." 
+                  : isLinkedInConnected 
+                    ? "Your LinkedIn account is connected" 
+                    : "Click to connect your LinkedIn account"
                 }
               </TooltipContent>
             </Tooltip>

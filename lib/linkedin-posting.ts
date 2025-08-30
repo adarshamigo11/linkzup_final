@@ -43,6 +43,80 @@ export async function postToLinkedIn(postData: LinkedInPostData): Promise<PostRe
       }
     }
 
+    // Handle images if provided
+    let mediaAssets = []
+    if (postData.images && postData.images.length > 0) {
+      // For LinkedIn, we need to upload images first and get asset URNs
+      for (const imageUrl of postData.images) {
+        try {
+          // Download the image
+          const imageResponse = await fetch(imageUrl)
+          if (!imageResponse.ok) {
+            console.warn(`Failed to download image: ${imageUrl}`)
+            continue
+          }
+          
+          const imageBuffer = await imageResponse.arrayBuffer()
+          
+          // Upload to LinkedIn's asset API
+          const assetResponse = await fetch("https://api.linkedin.com/v2/assets?action=registerUpload", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${session.user.accessToken}`,
+              "Content-Type": "application/json",
+              "X-Restli-Protocol-Version": "2.0.0",
+            },
+            body: JSON.stringify({
+              registerUploadRequest: {
+                recipes: ["urn:li:digitalmediaRecipe:feedshare-image"],
+                owner: `urn:li:person:${session.user.linkedinId}`,
+                serviceRelationships: [
+                  {
+                    relationshipType: "OWNER",
+                    identifier: "urn:li:userGeneratedContent",
+                  },
+                ],
+              },
+            }),
+          })
+
+          if (!assetResponse.ok) {
+            console.warn(`Failed to register upload for image: ${imageUrl}`)
+            continue
+          }
+
+          const assetData = await assetResponse.json()
+          const uploadUrl = assetData.value.uploadMechanism["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"].uploadUrl
+          const asset = assetData.value.asset
+
+          // Upload the image
+          const uploadResponse = await fetch(uploadUrl, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${session.user.accessToken}`,
+              "Content-Type": "application/octet-stream",
+            },
+            body: imageBuffer,
+          })
+
+          if (uploadResponse.ok) {
+            mediaAssets.push({
+              status: "READY",
+              description: {
+                text: "Generated content image",
+              },
+              media: asset,
+              title: {
+                text: "AI Generated Post",
+              },
+            })
+          }
+        } catch (error) {
+          console.error(`Error uploading image ${imageUrl}:`, error)
+        }
+      }
+    }
+
     // Prepare LinkedIn API request
     const linkedinRequestBody = {
       author: `urn:li:person:${session.user.linkedinId}`,
@@ -52,18 +126,9 @@ export async function postToLinkedIn(postData: LinkedInPostData): Promise<PostRe
           shareCommentary: {
             text: postData.content,
           },
-          shareMediaCategory: postData.images?.length ? "IMAGE" : "NONE",
-          ...(postData.images?.length && {
-            media: postData.images.map((image: string) => ({
-              status: "READY",
-              description: {
-                text: "Generated content image",
-              },
-              media: image,
-              title: {
-                text: "AI Generated Post",
-              },
-            })),
+          shareMediaCategory: mediaAssets.length > 0 ? "IMAGE" : "NONE",
+          ...(mediaAssets.length > 0 && {
+            media: mediaAssets,
           }),
         },
       },

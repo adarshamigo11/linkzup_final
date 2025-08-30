@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -16,22 +16,35 @@ import {
   Upload,
   Save,
   X,
-  Loader2
+  Loader2,
+  Send,
+  Settings
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useLinkedInPosting } from "@/hooks/use-linkedin-posting"
+import { LinkedInPostButton } from "@/components/linkedin-post-button"
 
 interface LinkedInPreviewProps {
   content: string
   onSaveToDraft: (content: string, title: string, format: string) => void
   onClose: () => void
+  onContentUpdate?: (newContent: string) => void
 }
 
-export function LinkedInPreview({ content, onSaveToDraft, onClose }: LinkedInPreviewProps) {
+export function LinkedInPreview({ content, onSaveToDraft, onClose, onContentUpdate }: LinkedInPreviewProps) {
   const { toast } = useToast()
-  const { postToLinkedIn, isPosting, isLinkedInConnected } = useLinkedInPosting()
+  const { isLinkedInConnected } = useLinkedInPosting()
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [imageSource, setImageSource] = useState<"ai-carousel" | "search" | "ai-generate" | "upload" | null>(null)
+  
+  // Edit functionality state
+  const [isEditing, setIsEditing] = useState(false)
+  const [editableContent, setEditableContent] = useState(content)
+
+  // Update editableContent when content prop changes
+  React.useEffect(() => {
+    setEditableContent(content)
+  }, [content])
   
   // Image Management State
   const [isLoading, setIsLoading] = useState(false)
@@ -41,6 +54,28 @@ export function LinkedInPreview({ content, onSaveToDraft, onClose }: LinkedInPre
   const [aiPrompt, setAiPrompt] = useState("")
   const [aiResults, setAiResults] = useState<any[]>([])
   const [uploadedImages, setUploadedImages] = useState<string[]>([])
+
+  // Edit functions
+  const handleEdit = () => {
+    setIsEditing(true)
+    setEditableContent(content)
+  }
+
+  const handleSaveEdit = () => {
+    setIsEditing(false)
+    if (onContentUpdate) {
+      onContentUpdate(editableContent)
+    }
+    toast({
+      title: "Content updated",
+      description: "Your post content has been updated successfully.",
+    })
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setEditableContent(content)
+  }
 
   const imageSources = [
     { value: "unsplash", label: "Unsplash" },
@@ -181,39 +216,7 @@ export function LinkedInPreview({ content, onSaveToDraft, onClose }: LinkedInPre
     })
   }
 
-  const handlePostToLinkedIn = async () => {
-    if (!isLinkedInConnected) {
-      toast({
-        title: "LinkedIn Not Connected",
-        description: "Please connect your LinkedIn account first to post content",
-        variant: "destructive",
-      })
-      return
-    }
 
-    try {
-      const images = selectedImage ? [selectedImage] : []
-      const result = await postToLinkedIn({
-        content,
-        images,
-      })
-
-      if (result.success) {
-        toast({
-          title: "Posted Successfully!",
-          description: "Your content has been posted to LinkedIn",
-        })
-        onClose()
-      }
-    } catch (error) {
-      console.error("Error posting to LinkedIn:", error)
-      toast({
-        title: "Posting Failed",
-        description: "Failed to post to LinkedIn. Please try again.",
-        variant: "destructive",
-      })
-    }
-  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -240,7 +243,39 @@ export function LinkedInPreview({ content, onSaveToDraft, onClose }: LinkedInPre
             </div>
             
             <div className="text-sm leading-relaxed mb-4">
-              {content}
+              {isEditing ? (
+                <div className="space-y-2">
+                  <Textarea
+                    value={editableContent}
+                    onChange={(e) => setEditableContent(e.target.value)}
+                    className="min-h-[120px] resize-none"
+                    placeholder="Edit your post content..."
+                  />
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={handleSaveEdit}>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Changes
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+                      <X className="w-4 h-4 mr-2" />
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="whitespace-pre-wrap">{content}</div>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={handleEdit}
+                    className="mt-2"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    Edit Post
+                  </Button>
+                </div>
+              )}
             </div>
 
             {selectedImage && (
@@ -412,7 +447,7 @@ export function LinkedInPreview({ content, onSaveToDraft, onClose }: LinkedInPre
                                 src={result.thumbnail}
                                 alt={result.title || 'Search result'}
                                 className="w-full h-24 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                                onClick={() => handleImageSelect(result.url, result)}
+                                onClick={() => handleImageSelect(result.url)}
                               />
                               <Badge className="absolute top-1 left-1 text-xs">
                                 {result.source}
@@ -462,7 +497,7 @@ export function LinkedInPreview({ content, onSaveToDraft, onClose }: LinkedInPre
                                 src={result.url}
                                 alt={result.prompt}
                                 className="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                                onClick={() => handleImageSelect(result.url, result)}
+                                onClick={() => handleImageSelect(result.url)}
                               />
                               <div className="absolute bottom-1 left-1 right-1 bg-black/50 text-white text-xs p-1 rounded">
                                 {result.prompt.substring(0, 50)}...
@@ -490,13 +525,10 @@ export function LinkedInPreview({ content, onSaveToDraft, onClose }: LinkedInPre
               <Save className="w-4 h-4 mr-2" />
               Save to Draft
             </Button>
-            <Button 
-              onClick={handlePostToLinkedIn}
-              disabled={isPosting || !isLinkedInConnected}
-            >
-              <Send className="w-4 h-4 mr-2" />
-              {isPosting ? "Posting..." : "Post to LinkedIn"}
-            </Button>
+            <LinkedInPostButton 
+              content={content} 
+              images={selectedImage ? [selectedImage] : undefined}
+            />
           </div>
         </CardContent>
       </Card>

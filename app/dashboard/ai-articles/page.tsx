@@ -48,6 +48,7 @@ export default function AIArticlesPage() {
   const [topics, setTopics] = useState<Topic[]>([])
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null)
   const [previewContent, setPreviewContent] = useState<string | null>(null)
+  const [previewingTopicId, setPreviewingTopicId] = useState<string | null>(null)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [contentType, setContentType] = useState<string>("article")
   const [provider, setProvider] = useState<"openai" | "perplexity">("openai")
@@ -77,6 +78,17 @@ export default function AIArticlesPage() {
       return topic.content[0] || ""
     }
     return topic.content
+  }
+
+  // Function to update topic content
+  const updateTopicContent = (topicId: string, newContent: string) => {
+    setTopics(prevTopics => 
+      prevTopics.map(topic => 
+        topic.id === topicId 
+          ? { ...topic, content: newContent }
+          : topic
+      )
+    )
   }
 
   const generateTopics = async () => {
@@ -487,64 +499,85 @@ export default function AIArticlesPage() {
                                 <span className="text-sm text-muted-foreground">Content generated</span>
                               </div>
                               {Array.isArray(topic.content) ? (
-                                <div className="space-y-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                   {topic.content.map((content, index) => (
-                                    <div key={index} className="space-y-2">
-                                      <div className="flex items-center justify-between">
-                                        <Badge variant="outline">Variation {index + 1}</Badge>
+                                    <div key={index} className="aspect-square p-4 border rounded-lg bg-muted/30 flex flex-col">
+                                      <div className="flex items-start justify-between mb-3">
+                                        <Badge variant="outline" className="text-xs">Variation {index + 1}</Badge>
+                                        <Badge variant="secondary" className="text-xs">{topic.format}</Badge>
+                                      </div>
+                                      <div className="flex-1 overflow-hidden">
+                                        <p className="text-sm text-muted-foreground line-clamp-6 leading-relaxed whitespace-pre-wrap">
+                                          {content}
+                                        </p>
+                                      </div>
+                                      <div className="mt-3 pt-2 border-t border-muted/30 space-y-2">
                                         <div className="flex gap-2">
                                           <Button 
                                             size="sm"
+                                            className="flex-1 text-xs"
                                             onClick={() => saveToDraft(content, `${topic.title} - Variation ${index + 1}`, topic.format || "article")}
                                           >
-                                            <Save className="w-4 h-4 mr-2" />
-                                            Save to Drafts
+                                            <Save className="w-3 h-3 mr-1" />
+                                            Save
                                           </Button>
                                           <Button 
                                             size="sm" 
                                             variant="outline"
-                                            onClick={() => setPreviewContent(content)}
+                                            className="flex-1 text-xs"
+                                            onClick={() => {
+                                              setPreviewContent(content)
+                                              setPreviewingTopicId(topic.id)
+                                            }}
                                           >
-                                            <Eye className="w-4 h-4 mr-2" />
+                                            <Eye className="w-3 h-3 mr-1" />
                                             Preview
                                           </Button>
                                         </div>
-                                      </div>
-                                      <div className="p-3 bg-muted/50 rounded-lg">
-                                        <p className="text-sm whitespace-pre-wrap">{content}</p>
                                       </div>
                                     </div>
                                   ))}
                                 </div>
                               ) : (
-                                <div className="space-y-3">
-                                  <div className="p-3 bg-muted/50 rounded-lg">
-                                    <p className="text-sm whitespace-pre-wrap">
-                                      {getTopicContent(topic)}
-                                    </p>
-                                  </div>
-                                  <div className="flex gap-2">
-                                    <Button 
-                                      size="sm"
-                                      onClick={() => saveToDraft(
-                                        getTopicContent(topic), 
-                                        topic.title, 
-                                        topic.format || "article"
-                                      )}
-                                    >
-                                      <Save className="w-4 h-4 mr-2" />
-                                      Save to Drafts
-                                    </Button>
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline"
-                                      onClick={() => setPreviewContent(
-                                        getTopicContent(topic)
-                                      )}
-                                    >
-                                      <Eye className="w-4 h-4 mr-2" />
-                                      Preview
-                                    </Button>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                  <div className="aspect-square p-4 border rounded-lg bg-muted/30 flex flex-col">
+                                    <div className="flex items-start justify-between mb-3">
+                                      <Badge variant="outline" className="text-xs">Single Content</Badge>
+                                      <Badge variant="secondary" className="text-xs">{topic.format}</Badge>
+                                    </div>
+                                    <div className="flex-1 overflow-hidden">
+                                      <p className="text-sm text-muted-foreground line-clamp-6 leading-relaxed whitespace-pre-wrap">
+                                        {getTopicContent(topic)}
+                                      </p>
+                                    </div>
+                                    <div className="mt-3 pt-2 border-t border-muted/30 space-y-2">
+                                      <div className="flex gap-2">
+                                        <Button 
+                                          size="sm"
+                                          className="flex-1 text-xs"
+                                          onClick={() => saveToDraft(
+                                            getTopicContent(topic), 
+                                            topic.title, 
+                                            topic.format || "article"
+                                          )}
+                                        >
+                                          <Save className="w-3 h-3 mr-1" />
+                                          Save
+                                        </Button>
+                                        <Button 
+                                          size="sm" 
+                                          variant="outline"
+                                          className="flex-1 text-xs"
+                                          onClick={() => {
+                                            setPreviewContent(getTopicContent(topic))
+                                            setPreviewingTopicId(topic.id)
+                                          }}
+                                        >
+                                          <Eye className="w-3 h-3 mr-1" />
+                                          Preview
+                                        </Button>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               )}
@@ -601,7 +634,16 @@ export default function AIArticlesPage() {
           <LinkedInPreview
             content={previewContent}
             onSaveToDraft={saveToDraft}
-            onClose={() => setPreviewContent(null)}
+            onClose={() => {
+              setPreviewContent(null)
+              setPreviewingTopicId(null)
+            }}
+            onContentUpdate={(newContent) => {
+              setPreviewContent(newContent)
+              if (previewingTopicId) {
+                updateTopicContent(previewingTopicId, newContent)
+              }
+            }}
           />
         )}
 
