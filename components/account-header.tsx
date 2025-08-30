@@ -44,14 +44,8 @@ export function AccountHeader() {
   const handleLinkedInConnection = async () => {
     if (!isLinkedInConnected) {
       try {
-        const response = await fetch('/api/linkedin/connect')
-        const data = await response.json()
-        
-        if (data.success && data.authUrl) {
-          window.location.href = data.authUrl
-        } else {
-          console.error('Failed to generate LinkedIn auth URL')
-        }
+        // The API route now redirects directly, so we just need to navigate to it
+        window.location.href = '/api/linkedin/connect'
       } catch (error) {
         console.error('Error connecting LinkedIn:', error)
       }
