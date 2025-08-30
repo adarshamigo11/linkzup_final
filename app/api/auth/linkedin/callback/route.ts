@@ -35,6 +35,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Exchange code for access token
+    const redirectUri = process.env.LINKEDIN_REDIRECT_URI || `${process.env.NEXTAUTH_URL}/api/auth/linkedin/callback`
+    
     const tokenResponse = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
       method: 'POST',
       headers: {
@@ -45,7 +47,7 @@ export async function GET(request: NextRequest) {
         code: code,
         client_id: process.env.LINKEDIN_CLIENT_ID!,
         client_secret: process.env.LINKEDIN_CLIENT_SECRET!,
-        redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/linkedin/callback`,
+        redirect_uri: redirectUri,
       }),
     })
 

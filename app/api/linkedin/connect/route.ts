@@ -29,10 +29,10 @@ export async function GET(request: NextRequest) {
     
     console.log("LinkedIn Client ID:", process.env.LINKEDIN_CLIENT_ID ? "exists" : "missing")
     console.log("NEXTAUTH_URL:", process.env.NEXTAUTH_URL)
+    console.log("LINKEDIN_REDIRECT_URI:", process.env.LINKEDIN_REDIRECT_URI)
     
-    // Generate LinkedIn OAuth URL directly
-    const baseUrl = process.env.NEXTAUTH_URL
-    const redirectUri = `${baseUrl}/api/auth/linkedin/callback`
+    // Use the LINKEDIN_REDIRECT_URI environment variable directly
+    const redirectUri = process.env.LINKEDIN_REDIRECT_URI || `${process.env.NEXTAUTH_URL}/api/auth/linkedin/callback`
     
     // Prepare state data
     const stateData = isSignIn 
